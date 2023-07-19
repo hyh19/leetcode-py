@@ -1,45 +1,62 @@
-from typing import List
+from collections import deque, defaultdict
+from functools import cache
+from random import shuffle
+from typing import List, Optional, Dict, Tuple
+
+
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
 
 
 class Solution:
-    def threeSum(self, nums: List[int]) -> List[List[int]]:
-        nums.sort()
-        return self.kSum(3, nums, 0, len(nums) - 1, 0)
+    def __init__(self) -> None:
+        self._memo: Dict[Tuple, int] = {}
 
-    # 返回升序子数组 nums[lo..hi] 中所有和为 target 且不重复的 k 元组
-    def kSum(self, k: int, nums: List[int], lo: int, hi: int, target: int) -> List[List[int]]:
-        if hi - lo + 1 < k:
-            return []
-        if k == 2:
-            return self.twoSum(nums, lo, hi, target)
-        res = []
-        i = lo
-        while i <= hi:
-            curNum = nums[i]
-            sp = self.kSum(k - 1, nums, i + 1, hi, target - curNum)
-            for x in sp:
-                x.append(curNum)
-                res.append(x)
-            while i <= hi and nums[i] == curNum:
-                i += 1
-        return res
+    def minDistance(self, s1: str, s2: str) -> int:
+        return self._minDistance(s1, len(s1) - 1, s2, len(s2) - 1)
 
-    # 返回升序子数组 nums[lo..hi] 中所有和为 target 且不重复的 2 元组
-    def twoSum(self, nums: List[int], lo: int, hi: int, target: int) -> List[List[int]]:
-        res = []
-        while lo < hi:
-            first, second = nums[lo], nums[hi]
-            sum = first + second
-            if sum < target:
-                while lo < hi and nums[lo] == first:
-                    lo += 1
-            elif sum > target:
-                while lo < hi and nums[hi] == second:
-                    hi -= 1
+    # 返回子串 s1[0..i] s2[0..j] 的最小删除步数
+    def _minDistance(self, s1: str, i: int, s2: str, j: int) -> int:
+        # 删除 s2[0..j]
+        # s1""
+        # s2[0..j]
+        if i < 0:
+            return j + 1
+
+        # 删除 s1[0..i]
+        # s1[0..i]
+        # s2""
+        if j < 0:
+            return i + 1
+
+        if (i, j) not in self._memo:
+            if s1[i] == s2[j]:
+                # s1[0..i-1][i]
+                # s2[0..j-1][j]
+                self._memo[(i, j)] = self._minDistance(s1, i - 1, s2, j - 1)
             else:
-                res.append([first, second])
-                while lo < hi and nums[lo] == first:
-                    lo += 1
-                while lo < hi and nums[hi] == second:
-                    hi -= 1
-        return res
+                # 删除 s1[i] s2[j]
+                # s1[0..i-1][i]
+                # s2[0..j-1][j]
+                sp1 = self._minDistance(s1, i - 1, s2, j - 1) + 2
+                # 删除 s2[j]
+                # s1[0..i]
+                # s2[0..j-1][j]
+                sp2 = self._minDistance(s1, i, s2, j - 1) + 1
+                # 删除 s1[i]
+                # s1[0..i-1][i]
+                # s2[0..j]
+                sp3 = self._minDistance(s1, i - 1, s2, j) + 1
+                self._memo[(i, j)] = min(sp1, sp2, sp3)
+
+        return self._memo[(i, j)]
